@@ -1,0 +1,85 @@
+{
+  "project_info": {
+    "project_number": "54502322186",
+    "firebase_url": "https://gear-transfer.firebaseio.com",
+    "project_id": "gear-transfer",
+    "storage_bucket": "gear-transfer.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54502322186:android:875826f41b75eba4",
+        "android_client_info": {
+          "package_name": "com.example.android.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54502322186-ergctpgn6rhf002dj26msb00gjcatjh7.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.android.myapplication",
+            "certificate_hash": "df684c29ee2a0ce6a163f24d1db05cebd794e5c3"
+          }
+        },
+        {
+          "client_id": "54502322186-rta1r0nkpvn1mr9ejv6cg7qerjnsjssf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoSE-GbT57naXJIZv3gc5uTZIIztstobg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54502322186-rta1r0nkpvn1mr9ejv6cg7qerjnsjssf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:54502322186:android:b0b34ce0fb864294",
+        "android_client_info": {
+          "package_name": "com.samsung.android.sdk.accessory.example.helloaccessory.consumer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "54502322186-ug8t5ki06cbqsf7stbtdtlnf9991fvb2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.samsung.android.sdk.accessory.example.helloaccessory.consumer",
+            "certificate_hash": "df684c29ee2a0ce6a163f24d1db05cebd794e5c3"
+          }
+        },
+        {
+          "client_id": "54502322186-rta1r0nkpvn1mr9ejv6cg7qerjnsjssf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDoSE-GbT57naXJIZv3gc5uTZIIztstobg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "54502322186-rta1r0nkpvn1mr9ejv6cg7qerjnsjssf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
