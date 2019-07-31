@@ -55,6 +55,8 @@ public class ConsumerService extends SAAgent {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference ref = database.getReference("gear1");
+    private ConsumerActivity consumerActivity=null;
+    public String DB_cnt_str="";
 
     List<String>data_XY =  new ArrayList<String>();
     List<Double>d_x =  new ArrayList<Double>();
@@ -180,9 +182,13 @@ public class ConsumerService extends SAAgent {
             ref.addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    ref.child("task1").child("x axis").setValue(d_x);
-                    ref.child("task1").child("y axis").setValue(d_y);
-                    ref.child("task1").child("z axis").setValue(d_z);
+
+
+                    //Log.d("sdsd", DB_cnt_str);
+
+                    ref.child("task_all").child("task"+DB_cnt_str).child("x axis").setValue(d_x);
+                    ref.child("task_all").child("task"+DB_cnt_str).child("y axis").setValue(d_y);
+                    ref.child("task_all").child("task"+DB_cnt_str).child("z axis").setValue(d_z);
                 }
 
                 @Override

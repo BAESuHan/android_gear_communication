@@ -58,8 +58,8 @@ public class ConsumerActivity extends Activity {
     private boolean mIsBound = false;
     private ListView mMessageListView;
     private ConsumerService mConsumerService = null;
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference myRef = database.getReference("gear");
+    public int DB_cnt=0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +108,18 @@ public class ConsumerActivity extends Activity {
                         updateTextView("Disconnected");
                         Toast.makeText(getApplicationContext(), R.string.ConnectionAlreadyDisconnected, Toast.LENGTH_LONG).show();
                         mMessageAdapter.clear();
+
+
+                        if(DB_cnt==-1){
+                            mConsumerService.DB_cnt_str="00";
+                        }
+                        else if(DB_cnt<10){
+                            mConsumerService.DB_cnt_str = "0"+DB_cnt;
+                        }
+                        else{
+                            mConsumerService.DB_cnt_str =String.valueOf(DB_cnt);
+                        }
+                        DB_cnt++;
                     }
                 }
                 break;
