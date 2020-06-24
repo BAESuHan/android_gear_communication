@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.dfki.mary:marytts-signalproc:5.2@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-signalproc/5.2/2da94209eb72bcfa779af2aef43e4f9c9205040/marytts-signalproc-5.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-signalproc/5.2/4dfd98f877f8b89a4b392c97fe5a2323ca2363af/marytts-signalproc-5.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

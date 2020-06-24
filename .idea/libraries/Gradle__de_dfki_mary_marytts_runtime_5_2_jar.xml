@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.dfki.mary:marytts-runtime:5.2@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/c75f16642056cb3342588420dba9eac940f161ef/marytts-runtime-5.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/marytts-runtime/5.2/207f122c4861af0a22d01ca0e2790ab5233f0df/marytts-runtime-5.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

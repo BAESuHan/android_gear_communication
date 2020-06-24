@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: de.dfki.mary:voice-cmu-slt-hsmm:5.2@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/voice-cmu-slt-hsmm/5.2/cae0223460ab045dc2187b855b50754c483220b0/voice-cmu-slt-hsmm-5.2.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/de.dfki.mary/voice-cmu-slt-hsmm/5.2/27e4340d364b2cdce273f537dd974d2e400ad778/voice-cmu-slt-hsmm-5.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

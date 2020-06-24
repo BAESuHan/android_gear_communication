@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 27
-    buildToolsVersion '27.0.0'
+    compileSdkVersion 28
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.samsung.android.sdk.accessory.example.helloaccessory.consumer"
-        minSdkVersion 15
-        targetSdkVersion 27
+        minSdkVersion 26
+        targetSdkVersion 28
         versionCode 4
         versionName '2.0.2'
     }
@@ -19,11 +19,27 @@ android {
     }
     productFlavors {
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/proguard/androidx-annotations.pro'
+    }
+
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.google.firebase:firebase-auth:16.0.1'
-    compile 'com.android.support:appcompat-v7:27.1.1'
-    compile 'com.google.firebase:firebase-database:16.0.1'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.google.firebase:firebase-auth:16.0.1'
+    implementation 'com.google.firebase:firebase-database:16.0.1'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation files('libs/dsp-collection.jar')
+    // https://mvnrepository.com/artifact/edu.mines.jtk/edu-mines-jtk
+    implementation group: 'edu.mines.jtk', name: 'edu-mines-jtk', version: '1.0.0'
+    implementation 'de.dfki.mary:voice-cmu-slt-hsmm:5.2'
+    implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
+
 }

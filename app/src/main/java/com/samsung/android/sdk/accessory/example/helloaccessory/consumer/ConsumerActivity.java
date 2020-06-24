@@ -23,7 +23,9 @@
 
 package com.samsung.android.sdk.accessory.example.helloaccessory.consumer;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +34,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -44,13 +47,25 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import static android.content.ContentValues.TAG;
+import biz.source_code.dsp.signal.EnvelopeDetector;
+import edu.mines.jtk.dsp.BandPassFilter;
+import edu.mines.jtk.dsp.Fft;
+import edu.mines.jtk.dsp.HilbertTransformFilter;
+import edu.mines.jtk.dsp.Sampling;
+
 
 public class ConsumerActivity extends Activity {
     private static TextView mTextView;
@@ -58,7 +73,27 @@ public class ConsumerActivity extends Activity {
     private boolean mIsBound = false;
     private ListView mMessageListView;
     private ConsumerService mConsumerService = null;
-    public int DB_cnt=0;
+    public int DB_cnt;
+    public float[] mean_xyz;
+    public FirebaseDatabase database = FirebaseDatabase.getInstance();
+    public DatabaseReference ref = database.getReference("gear");
+    public LineTask_Analyze lineTask_analyze=new LineTask_Analyze();
+
+    private static LineChart mChart;
+    private Thread graphThread;
+    private static boolean plotData = true;
+
+//    private BandPassFilter BPF =new BandPassFilter(0.05,0.25,0.1,0.6);
+//    private BandPassFilter LPF =new BandPassFilter(0.00,0.05,0.1,0.6);
+//    private HilbertTransformFilter Hilbert = new HilbertTransformFilter(1000,0.01f,0.05f,0.25f);
+
+    public double[] raw_sum;
+    public double[] smooth_sum;
+    public double[] cnt_task;
+    public double[] copy_sum;
+    static long start_time;
+    static long end_time;
+    public double task_time;
 
 
     @Override
@@ -66,14 +101,26 @@ public class ConsumerActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mTextView = (TextView) findViewById(R.id.tvStatus);
-        mMessageListView = (ListView) findViewById(R.id.lvMessage);
+//        mMessageListView = (ListView) findViewById(R.id.lvMessage);
+       //line 그리기
+        mChart = (LineChart) findViewById(R.id.chart);
+        mChart.getDescription().setEnabled(true);
+        mChart.getDescription().setText("Real Time Falling Detection");
+        mChart.setTouchEnabled(false);
+        mChart.setDragEnabled(false);
+        mChart.setScaleEnabled(false);
+        mChart.setDrawGridBackground(true);
+        mChart.setPinchZoom(false);
+        mChart.setBackgroundColor(Color.WHITE);
+
+        LineData data = new LineData();
+        data.setValueTextColor(Color.WHITE);
+        mChart.setData(data);
+        startPlot();
         mMessageAdapter = new MessageAdapter();
         mMessageListView.setAdapter(mMessageAdapter);
         // Bind service
         mIsBound = bindService(new Intent(ConsumerActivity.this, ConsumerService.class), mConnection, Context.BIND_AUTO_CREATE);
-
-
-
 
     }
 
@@ -99,37 +146,115 @@ public class ConsumerActivity extends Activity {
             case R.id.buttonConnect: {
                 if (mIsBound == true && mConsumerService != null) {
                     mConsumerService.findPeers();
+
+                    clear();
+                    start_time = System.currentTimeMillis();
+
+
                 }
                 break;
             }
             case R.id.buttonDisconnect: {
                 if (mIsBound == true && mConsumerService != null) {
+                    end_time = System.currentTimeMillis();
+
+                    if(graphThread != null)
+                        graphThread.interrupt();
+
                     if (mConsumerService.closeConnection() == false) {
                         updateTextView("Disconnected");
                         Toast.makeText(getApplicationContext(), R.string.ConnectionAlreadyDisconnected, Toast.LENGTH_LONG).show();
                         mMessageAdapter.clear();
 
+                        ref.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                DB_cnt=(int)dataSnapshot.getChildrenCount();
+                                task_time=end_time-start_time;
+//                                raw_sum=lineTask_analyze.rawSum(ArratlistToArray(mConsumerService.d_x),ArratlistToArray(mConsumerService.d_y),ArratlistToArray(mConsumerService.d_z));
+                                raw_sum=ArratlistToArray(mConsumerService.d_sum);
+                                copy_sum=new double[raw_sum.length-19];
+                                System.arraycopy(raw_sum,19,copy_sum,0,raw_sum.length-19);
+                                smooth_sum = lineTask_analyze.smoothSum(copy_sum);
+                                cnt_task=lineTask_analyze.countFingerNose(smooth_sum);
+//                                Log.d("sdsdd ", String.valueOf(copy_sum.length));
 
-                        if(DB_cnt==-1){
-                            mConsumerService.DB_cnt_str="00";
-                        }
-                        else if(DB_cnt<10){
-                            mConsumerService.DB_cnt_str = "0"+DB_cnt;
-                        }
-                        else{
-                            mConsumerService.DB_cnt_str =String.valueOf(DB_cnt);
-                        }
-                        DB_cnt++;
+                                ref.child("task").child("time").setValue(task_time/1000);
+                                ref.child("task").child("sum").setValue(mConsumerService.d_sum);
+//                                ref.child("task").child("rawsum").setValue(ArrayToArraylist(raw_sum));
+                                ref.child("task").child("smoothsum").setValue(ArrayToArraylist(smooth_sum));
+                                ref.child("task").child("cnttask").setValue(ArrayToArraylist(cnt_task));
+
+
+
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
                     }
+
                 }
                 break;
             }
+            //이거는 없어도 될듯
             case R.id.buttonSend: {
                 if (mIsBound == true && mConsumerService != null) {
-                    if (mConsumerService.sendData("Hello Accessory!")) {
-                    } else {
-                        Toast.makeText(getApplicationContext(), R.string.ConnectionAlreadyDisconnected, Toast.LENGTH_LONG).show();
+
+//                    if (mConsumerService.sendData("Hello Accessory!")) {
+//                    } else {
+//                        Toast.makeText(getApplicationContext(), R.string.ConnectionAlreadyDisconnected, Toast.LENGTH_LONG).show();
+//
+//                    }
+                    if (mConsumerService.closeConnection() == false){
+                        end_time = System.currentTimeMillis();
+                        if (mConsumerService.closeConnection() == false) {
+                            updateTextView("Disconnected");
+                            Toast.makeText(getApplicationContext(), R.string.ConnectionAlreadyDisconnected, Toast.LENGTH_LONG).show();
+                            mMessageAdapter.clear();
+
+                            ref.addValueEventListener(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                    DB_cnt=(int)dataSnapshot.getChildrenCount();
+                                    task_time=end_time-start_time;
+//                                raw_sum=lineTask_analyze.rawSum(ArratlistToArray(mConsumerService.d_x),ArratlistToArray(mConsumerService.d_y),ArratlistToArray(mConsumerService.d_z));
+                                    raw_sum=ArratlistToArray(mConsumerService.d_sum);
+                                    copy_sum=new double[raw_sum.length-19];
+                                    System.arraycopy(raw_sum,19,copy_sum,0,raw_sum.length-19);
+                                    if(plotData){
+                                        for(int i=0; i<copy_sum.length;i++){
+                                            addEntry((float)copy_sum[i],0);
+                                        }
+
+                                    }
+
+                                    smooth_sum = lineTask_analyze.smoothSum(copy_sum);
+                                    cnt_task=lineTask_analyze.countTurnHand(smooth_sum);
+//                                    Log.d("sdsdd ", String.valueOf(copy_sum.length));
+
+                                    ref.child("task").child("time").setValue(task_time/1000);
+                                    ref.child("task").child("sum").setValue(mConsumerService.d_sum);
+//                                ref.child("task").child("rawsum").setValue(ArrayToArraylist(raw_sum));
+                                    ref.child("task").child("smoothsum").setValue(ArrayToArraylist(smooth_sum));
+                                    ref.child("task").child("cnttask").setValue(ArrayToArraylist(cnt_task));
+
+                                    plotData = false;
+                                }
+
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+                        }
+
                     }
+
                 }
                 break;
             }
@@ -231,4 +356,195 @@ public class ConsumerActivity extends Activity {
             this.data = data;
         }
     }
+
+    //-------------------------------------내가 만든 함수------------------------
+
+    private void clear(){
+        mConsumerService.d_x.clear();
+        mConsumerService.d_y.clear();
+        mConsumerService.d_z.clear();
+        mConsumerService.d_time.clear();
+        mConsumerService.d_sum.clear();
+        mConsumerService.ii=0;
+    }
+    //어레이리스트에서 어레이로 바꿔주기 (밴드패스 필터링 라이브러리 때문에)
+    public double[] ArratlistToArray(ArrayList<Float> arr) {
+        double[] return_value=new double[arr.size()];
+
+        for (int i =0;i<arr.size();i++){
+            return_value[i]= arr.get(i);
+        }
+
+        return return_value;
+    }
+//
+    public ArrayList<Float> ArrayToArraylist(double[] arr){
+        ArrayList<Float> return_val= new ArrayList<Float>();
+
+        for (int i =0;i<arr.length;i++){
+            return_val.add((float)arr[i]);
+        }
+        return return_val;
+    }
+
+    private void startPlot(){
+
+        if(graphThread != null){
+            graphThread.interrupt();
+        }
+
+        graphThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    plotData = true;
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e){
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+
+        graphThread.start();
+    }
+
+    // LineChart addEntry()
+    private static void addEntry(float idx, int order){
+        LineData data = mChart.getData();
+
+        if (data != null){
+            ILineDataSet set = data.getDataSetByIndex(order);
+
+            if(set == null){
+                set = createSet(order);
+                data.addDataSet(set);
+            }
+
+            data.addEntry(new Entry(set.getEntryCount(), idx), order);
+            data.setDrawValues(false);
+            data.notifyDataChanged();
+        }
+
+        // let the chart know it's data has changed
+        mChart.notifyDataSetChanged();
+
+        mChart.setMaxVisibleValueCount(220);
+        mChart.moveViewToX(data.getEntryCount());
+    }
+
+    private final static int[] colors = new int[] {
+            ColorTemplate.VORDIPLOM_COLORS[0],
+            ColorTemplate.VORDIPLOM_COLORS[1],
+            ColorTemplate.VORDIPLOM_COLORS[4]
+    };
+
+    // LineChart createSet()
+    private static LineDataSet createSet(int order){
+        // order 필요 없어짐 - 수정해야 함
+        LineDataSet set;
+        set = new LineDataSet(null, "SVM Variation");
+        set.setColor(colors[1]);
+        set.setLineWidth(2.5f);
+        set.setDrawCircles(false);
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        set.setMode(LineDataSet.Mode.LINEAR);
+//      set.setCubicIntensity(0.2f);
+        return set;
+    }
+
+
+//
+//
+//    public float[] Mean_xyz(float[] x,float[] y , float[] z){
+//        mean_xyz=new float[x.length];
+//        for(int i=0;i<x.length;i++){
+//            mean_xyz[i]=(x[i]+y[i]+z[i])/3;
+//        }
+//        return mean_xyz;
+//    }
+//
+//    // Function that Calculate Root
+//    // Mean Square
+//    static float rmsValue(float[] arr, int n)
+//    {
+//        int square = 0;
+//        float mean = 0;
+//        float root = 0;
+//
+//        // Calculate square.
+//        for(int i = 0; i < n; i++)
+//        {
+//            square += Math.pow(arr[i], 2);
+//        }
+//
+//        // Calculate Mean.
+//        mean = (square / (float) (n));
+//
+//        // Calculate Root.
+//        root = (float)Math.sqrt(mean);
+//
+//        return root;
+//    }
+
+//    public float TremorMagnitude(float[] mean){
+//        float val;
+//        float[] hil_output=new float[mean.length];
+//        float[] abs_hil=new float[hil_output.length];
+//        Hilbert.apply(mean.length,mean,hil_output);
+//        for(int i =0; i<hil_output.length;i++){
+//            abs_hil[i]=Math.abs(hil_output[i]);
+//        }
+//
+//        val=rmsValue(abs_hil,hil_output.length);
+//
+//        return val;
+//
+//    }
+
+//    public float[] TremorMagnitude(float[] mean){
+//        float val;
+//        float[] hil_output=new float[mean.length];
+//        float[] abs_hil=new float[hil_output.length];
+//        Hilbert.apply(mean.length,mean,hil_output);
+//        for(int i =0; i<hil_output.length;i++){
+//            abs_hil[i]=Math.abs(hil_output[i]);
+//        }
+//
+//        //val=rmsValue(abs_hil,hil_output.length);
+//
+//        return abs_hil;
+//
+//    }
+//
+//
+//    public float FFT_freq(float[] band){
+//        float max;
+//        Fft fft = new Fft(band.length); // nx = number of samples of f(x)
+//        Sampling sk = fft.getFrequencySampling1();
+//        int nk = sk.getCount(); // number of frequencies sampled
+//        float[] f = band; // nx real samples of input f(x)
+//        float[] g = fft.applyForward(f); // nk complex samples of g(k)
+//        for (int kk=0,kr=0,ki=kr+1; kk<nk; ++kk,kr+=2,ki+=2) {
+//            double k = sk.getValue(kk); // frequency k in cycles/sample
+//            // modify g[kr], the real part of g(k)
+//            // modify g[ki], the imag part of g(k)
+//        }
+//
+//        float[] h = fft.applyInverse(g); // nx real samples of output h(x)
+//        for(int i=0;i<h.length;i++){
+//            Log.d("1234", String.valueOf(h[i]));
+//        }
+//        max=h[0];
+//
+//        for(int i=1;i<h.length;i++){
+//            if(max<h[i]){
+//                max=h[i];
+//                Log.d("12345", String.valueOf(i));
+//            }
+//        }
+//        return max;
+//    }
+
 }

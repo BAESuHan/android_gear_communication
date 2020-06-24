@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="Gradle: edu.mines.jtk:edu-mines-jtk:1.0.0@jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/edu.mines.jtk/edu-mines-jtk/1.0.0/f3058b71cbba2d6947363363b5e982f3d781c3ea/edu-mines-jtk-1.0.0.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/edu.mines.jtk/edu-mines-jtk/1.0.0/74d266a58682ccf833229ff4ffbc6fb4a3c476a0/edu-mines-jtk-1.0.0-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

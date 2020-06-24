@@ -45,6 +45,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.samsung.android.sdk.SsdkUnsupportedException;
 import com.samsung.android.sdk.accessory.*;
 
+import edu.mines.jtk.dsp.BandPassFilter;
+
 public class ConsumerService extends SAAgent {
     private static final String TAG = "HelloAccessory(C)";
     private static final int HELLOACCESSORY_CHANNEL_ID = 104;
@@ -52,17 +54,21 @@ public class ConsumerService extends SAAgent {
     private final IBinder mBinder = new LocalBinder();
     private ServiceConnection mConnectionHandler = null;
     Handler mHandler = new Handler();
+    public int ii=0;
 
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference ref = database.getReference("gear1");
+
+
     private ConsumerActivity consumerActivity=null;
     public String DB_cnt_str="";
 
-    List<String>data_XY =  new ArrayList<String>();
-    List<Double>d_x =  new ArrayList<Double>();
-    List<Double>d_y =  new ArrayList<Double>();
-    List<Double>d_z =  new ArrayList<Double>();
 
+    public List<String>data_XY =  new ArrayList<String>();
+    public ArrayList<Float>d_x =  new ArrayList<Float>();
+    public ArrayList<Float>d_y =  new ArrayList<Float>();
+    public ArrayList<Float>d_z =  new ArrayList<Float>();
+    public ArrayList<Float>d_time =  new ArrayList<Float>();
+
+    public ArrayList<Float>d_sum =  new ArrayList<Float>();
     public ConsumerService() {
         super(TAG, SASOCKET_CLASS);
     }
@@ -70,6 +76,7 @@ public class ConsumerService extends SAAgent {
     @Override
     public void onCreate() {
         super.onCreate();
+        Log.d("sdsdd", "제대로 하자");
         SA mAccessory = new SA();
         try {
             mAccessory.initialize(this);
@@ -168,34 +175,29 @@ public class ConsumerService extends SAAgent {
         @Override
         public void onReceive(int channelId, final byte[] data) {
             final String message = new String(data);
-            addMessage("Received: ", message);
-
+//            addMessage("Received: ", ii+" "+message);
+            addMessage("Received:  ", String.valueOf(ii));
 
             data_XY = Arrays.asList(message.split(":"));
 
-            d_x.add(Double.parseDouble(data_XY.get(0)));
-            d_y.add(Double.parseDouble(data_XY.get(1)));
-            d_z.add(Double.parseDouble(data_XY.get(2)));
+            for(int i=0;i<20;i++){
+                d_sum.add(Float.valueOf(data_XY.get(i)));
+            }
+//            d_time.add(Float.valueOf(data_XY.get(20)));
 
-            //Log.d("sdsd", String.valueOf(d_x));
+//            d_x.add(Float.valueOf(data_XY.get(0)));
+//            d_y.add(Float.valueOf(data_XY.get(1)));
+//            d_z.add(Float.valueOf(data_XY.get(2)));
+//            d_time.add(Float.valueOf(data_XY.get(3)));
+            ii++;
+//            for(int i=0;i<d_x.size();i++){
+//
+//            }
+            //이거 수정해봐 20.1.15
+            for(int i=0;i<20;i++){
+                Log.d("sdsd ", ii+" "+String.valueOf(Float.valueOf(data_XY.get(i))));
+            }
 
-            ref.addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-
-                    //Log.d("sdsd", DB_cnt_str);
-
-                    ref.child("task_all").child("task"+DB_cnt_str).child("x axis").setValue(d_x);
-                    ref.child("task_all").child("task"+DB_cnt_str).child("y axis").setValue(d_y);
-                    ref.child("task_all").child("task"+DB_cnt_str).child("z axis").setValue(d_z);
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError databaseError) {
-                    Log.v("sdsd", "Failed1");
-                }
-            });
 
         }
 
@@ -280,4 +282,7 @@ public class ConsumerService extends SAAgent {
             }
         });
     }
+
+
+
 }
